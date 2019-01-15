@@ -1,0 +1,7 @@
+com.moviestore.beans
+com.moviestore.controller
+com.moviestore.dao
+com.moviestore.model
+com.moviestore.systemsInterfaces
+com.moviestore.test.dao
+com.moviestore.utility
