@@ -12,20 +12,22 @@ import com.moviestore.systemsInterfaces.MediaDAOI;
 import com.moviestore.utility.JDBCStatement;
 
 public class MediaDAO implements MediaDAOI {
+	private ResultSet rs = null;
+	private Statement statement = null;
+	private JDBCStatement jDBCStatement = null;
 
-
-
+	/**
+	 * @param int moviesID
+	 * @return List Media
+	 */
 	@Override
 	public List<Media> getMediaByMoviesID(int moviesID) {
 
 		List<Media> medias = new ArrayList<Media>();
-		JDBCStatement jDBCStatement = null;
-		ResultSet rs = null;
-		Statement statement = null;
+		jDBCStatement = new JDBCStatement();
 
 		try {
 
-			jDBCStatement = new JDBCStatement();
 			statement = jDBCStatement.getConnection().createStatement();
 			rs = statement.executeQuery("SELECT mediatipid, moviesid, mediapath FROM media WHERE moviesid = " + moviesID
 					+ " and mediatipid !=1");
@@ -34,21 +36,22 @@ public class MediaDAO implements MediaDAOI {
 			while (rs.next()) { //
 				medias.add(new Media(rs.getInt("mediatipid"), rs.getInt("moviesid"), rs.getNString("mediapath")));
 			}
-		} catch (SQLException | ClassNotFoundException | IOException e) {
+		} catch (NullPointerException | SQLException | ClassNotFoundException | IOException e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (!statement.isClosed()) {
-					statement.close();
-				}
-				if (!rs.isClosed()) {
+
+				if (rs != null && !rs.isClosed()) {
+
 					rs.close();
 				}
+				if (statement != null && !statement.isClosed()) {
 
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
+					statement.close();
 				}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+				jDBCStatement.jDBCStatementClose();
+
+			} catch (NullPointerException | SQLException e) {
 				e.printStackTrace();
 			} finally {
 			}

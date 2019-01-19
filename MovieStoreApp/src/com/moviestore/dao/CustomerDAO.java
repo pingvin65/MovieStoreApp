@@ -28,7 +28,7 @@ public class CustomerDAO implements CustomerDAOI {
 			jDBCStatement = new JDBCStatement();
 			statement = jDBCStatement.getConnection().createStatement();
 			rs = statement.executeQuery("SELECT email FROM view_customer WHERE email='" + email + "'");
-			//rs = new OracleSQL().getData("SELECT email FROM view_customer WHERE email='" + email + "'");
+		
 			if (rs.next()) { //
 				email2 = rs.getNString("email");
 			}
@@ -37,16 +37,17 @@ public class CustomerDAO implements CustomerDAOI {
 			e.printStackTrace();
 		}finally {
 			try {
+				
+				jDBCStatement.jDBCStatementClose();
 				if (!rs.isClosed()) {
 					rs.close();
 				}
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
-				}
+
+				
 				if (!statement.isClosed()) {
 					statement.close();
 				}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+			} catch (SQLException e) {
 			
 				e.printStackTrace();
 			}
@@ -74,16 +75,15 @@ public class CustomerDAO implements CustomerDAOI {
 			e.printStackTrace();
 		}finally {
 			try {
+				
+				jDBCStatement.jDBCStatementClose();
 				if (!rs.isClosed()) {
 					rs.close();
-				}
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
 				}
 				if (!ps.isClosed()) {
 					ps.close();
 				}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+			} catch (SQLException e) {
 			
 				e.printStackTrace();
 			}

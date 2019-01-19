@@ -7,10 +7,24 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class JDBCStatement {
 
+/**
+ * 
+ * @author pingvin
+ *
+ */
+public class JDBCStatement {
+	private Connection connection = null;
+	
+	/**
+	 * 
+	 * @return Connection
+	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 * @throws SQLException
+	 */
 	public Connection getConnection() throws ClassNotFoundException, IOException, SQLException {
-		Connection connection = null;
+
 		final Properties prop = new Properties();
 	
 		final InputStream inputStream = OracleSQL.class.getClassLoader()
@@ -33,6 +47,24 @@ public class JDBCStatement {
 		return connection;
 	}
 	
+	
+	/**
+	 * 
+	 */
+	public void jDBCStatementClose() {
+		try {
+			if (connection!=null && !connection.isClosed()) {
+				System.out.println("jDBCStatement");
+				connection.close();
+			}
+			if (connection!=null && !connection.isClosed()) {
+				System.out.println("jDBCStatement");
+
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 }
 
 

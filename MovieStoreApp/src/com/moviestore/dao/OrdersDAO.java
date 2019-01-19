@@ -9,43 +9,42 @@ import java.sql.Statement;
 import com.moviestore.systemsInterfaces.OrdersDAOI;
 import com.moviestore.utility.JDBCStatement;
 
-public class OrdersDAO implements OrdersDAOI{
+public class OrdersDAO implements OrdersDAOI {
 
-
-
-	@Override
+	/**
+	 * @param int customerID
+	 * @return boolean if INSERT successful true
+	 */
+	@Override 
 	public boolean insertOrder(int customerID) {
-		//String generatedColumns[] = { "CUSTOMERID" };
-		JDBCStatement jDBCStatement = new JDBCStatement();
+		
+		JDBCStatement jDBCStatement = null;
 		PreparedStatement stmtInsert = null;
+		jDBCStatement = new JDBCStatement();
 
 		boolean rz = false;
-	
+
 		try {
 
-			stmtInsert = jDBCStatement.getConnection().prepareStatement("INSERT INTO ORDERS (CUSTOMERID) VALUES ("+ customerID+ ")", Statement.RETURN_GENERATED_KEYS);
+			stmtInsert = jDBCStatement.getConnection().prepareStatement(
+					"INSERT INTO ORDERS (CUSTOMERID) VALUES (" + customerID + ")", Statement.RETURN_GENERATED_KEYS);
 			stmtInsert.execute();
 
-		
 			rz = true;
-			
 
-	
 		} catch (ClassNotFoundException | SQLException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally {
+		} finally {
 			try {
 
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
-				}
 				if (!stmtInsert.isClosed()) {
 					stmtInsert.close();
 				}
 
-			} catch (SQLException | ClassNotFoundException | IOException e) {
-			
+				jDBCStatement.jDBCStatementClose();
+			} catch (SQLException e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -53,39 +52,40 @@ public class OrdersDAO implements OrdersDAOI{
 		return rz;
 	}
 
+	/**
+	 * @param int customerID
+	 * @return int last generated Key
+	 */
 	@Override
 	public int getLastID(int customerID) {
-		ResultSet rs=null;
+		ResultSet rs = null;
 		int generatedKey = 0;
 		Statement statement = null;
 		JDBCStatement jDBCStatement = new JDBCStatement();
 		try {
 			statement = jDBCStatement.getConnection().createStatement();
 			rs = statement.executeQuery("select max(ordersid) as maxid from orders WHERE customerid =" + customerID);
-			
+
 			if (rs.next()) {
 				generatedKey = rs.getInt("maxid");
-			   //generatedKey =(int)  rs.getInt(0);
+				// generatedKey =(int) rs.getInt(0);
 			}
 		} catch (ClassNotFoundException | SQLException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally {
+		} finally {
 			try {
-
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
-				}
+			
 				if (!rs.isClosed()) {
 					rs.close();
 				}
+				jDBCStatement.jDBCStatementClose();
 
-			} catch (SQLException | ClassNotFoundException | IOException e) {
-			
+			} catch (SQLException e) {
+
 				e.printStackTrace();
 			}
 		}
-		// TODO Auto-generated method stub
+	
 		return generatedKey;
 	}
 

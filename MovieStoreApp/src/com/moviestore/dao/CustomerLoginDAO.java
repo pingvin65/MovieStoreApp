@@ -11,9 +11,12 @@ import com.moviestore.utility.JDBCStatement;
 
 public class CustomerLoginDAO implements CustomerLoginDAOI {
 
+	/**
+	 * @param String email
+	 * @return CustomerLogin
+	 */
 	@Override
 	public CustomerLogin getCustomerByEmail(String email) {
-		// TODO Auto-generated method stub
 		JDBCStatement jDBCStatement = null;
 		ResultSet rs = null;
 		CustomerLogin viewCustomer = null;
@@ -36,16 +39,16 @@ public class CustomerLoginDAO implements CustomerLoginDAOI {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (!rs.isClosed()) {
+				if (rs != null && !rs.isClosed()) {
 					rs.close();
 				}
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
-				}
-				if (!statement.isClosed()) {
+				if (statement != null && !statement.isClosed()) {
 					statement.close();
 				}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+
+				jDBCStatement.jDBCStatementClose();
+
+			} catch (SQLException e) {
 
 				e.printStackTrace();
 			}
@@ -53,6 +56,10 @@ public class CustomerLoginDAO implements CustomerLoginDAOI {
 		return viewCustomer;
 	}
 
+	/**
+	 * @param int customerid
+	 * @return CustomerLogin
+	 */
 	@Override
 	public CustomerLogin getCustomerByid(int customerid) {
 		// TODO Auto-generated method stub
@@ -73,12 +80,7 @@ public class CustomerLoginDAO implements CustomerLoginDAOI {
 				viewCustomer = new CustomerLogin(rs.getInt("customerid"), rs.getNString("email"),
 						rs.getNString("password"), rs.getNString("frst_name"));
 			}
-			if (!rs.isClosed()) {
-				rs.close();
-			}
-			if (!jDBCStatement.getConnection().isClosed()) {
-				jDBCStatement.getConnection().close();
-			}
+
 		} catch (SQLException | ClassNotFoundException | IOException e) {
 
 			e.printStackTrace();
@@ -87,13 +89,13 @@ public class CustomerLoginDAO implements CustomerLoginDAOI {
 				if (!rs.isClosed()) {
 					rs.close();
 				}
-				if (!jDBCStatement.getConnection().isClosed()) {
-					jDBCStatement.getConnection().close();
-				}
+
 				if (!statement.isClosed()) {
 					statement.close();
 				}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+				jDBCStatement.jDBCStatementClose();
+
+			} catch (SQLException e) {
 
 				e.printStackTrace();
 			}

@@ -51,5 +51,3 @@ Software, operating systems and technologies that are used
 - graphic software
 -- gimp
 -- inkscape
-
--path to ojdbc8.jar is WebContent/WEB-INF/lib/ojdbc8.jar

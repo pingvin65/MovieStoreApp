@@ -59,10 +59,11 @@ import com.moviestore.utility.CipherHelper;
 @SessionAttributes({ "userkey", "moviekey", "moviekeys", "personRolesInMovieskey", "genreskey", "picture", "pictures",
 		"listCustomerFavMovies" })
 public class HomeController {
-	//static InfoPage infoPage = new InfoPage();
+	// static InfoPage infoPage = new InfoPage();
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
-	private static final String apptitleg = InfoPage.getApptitleg(); //"MS";
+	private static final String apptitleg = InfoPage.getApptitleg(); // "MS";
 	private static final String secretKey = InfoPage.getSecretkey();
+	private CustomerFavMovieDAO cfmDAO;
 
 	public void checkLogin(HttpSession session) {
 		if (session.getAttribute("userlogin") == null) {
@@ -155,15 +156,16 @@ public class HomeController {
 	public ModelAndView home(Locale locale, Model model, HttpSession session, HttpServletRequest request,
 			@ModelAttribute("genreskey") List<MoviesBean> moviesBeanplu) {
 		logger.info("--------r------> mediapath {}.", moviesBeanplu.isEmpty());
-
+		List<Media> mediaplu = null;
+		MediaDAO mediaDAO = null;
 		if (!moviesBeanplu.isEmpty()) {
 			moviesBeanplu.clear();
 		}
-		
-		if (session.getAttribute("addMovieToList")!=null) {
-			session.removeAttribute("addMovieToList");			
-		}
 
+		if (session.getAttribute("addMovieToList") != null) {
+			session.removeAttribute("addMovieToList");
+		}
+		List<Movies> moviesplu = null;
 		logger.info("Welcome home! The client locale is {}.", session.getAttribute("moviekeys"));
 		// logger.info("request.getContextPath() is{}", request.getServletPath());
 		session = request.getSession();
@@ -172,7 +174,7 @@ public class HomeController {
 
 		MoviesDAO noviesDAO = new MoviesDAO();
 		String requestPath = request.getServletPath();
-		String sqlQuery = "";
+		String sqlQuery = null;
 		if (requestPath.equals("/")) {
 			sqlQuery = "SELECT moviesid, title, description, runtime,  TO_CHAR(release_date, 'FMMon DD, YYYY')as release_date, score, price FROM view_homepage";
 			modelAndView.addObject("apptitle", apptitleg + " | home");
@@ -191,25 +193,22 @@ public class HomeController {
 			modelAndView.addObject("apptitle", apptitleg + " | movies by score");
 			sqlQuery = "SELECT moviesid, title, description, runtime,  TO_CHAR(release_date, 'FMMonth DD, YYYY')as release_date, score, price FROM view_homepage ORDER BY score DESC";
 		}
-		List<Movies> moviesplu = new ArrayList<Movies>();
-
-		moviesplu = noviesDAO.getMoviesList(sqlQuery);
+		// moviesplu = new ArrayList<Movies>();
 
 		if (session.getAttribute("userlogin") == null) {
 			session.setAttribute("userlogin", "logout");
 		}
-		// session.removeAttribute("userlogin");
-		// logger.info("home user is or no login {}.",
-		// session.getAttribute("userlogin"));
 
-		MediaDAO mediaDAO = new MediaDAO();
+		moviesplu = noviesDAO.getMoviesList(sqlQuery);
+
+		mediaDAO = new MediaDAO();
 		// logger.info("home -------> {}.", mediaDAO.toString().length());
 		if (!moviesplu.isEmpty()) {
 
 			String mediapath;
 			for (Movies m : moviesplu) {
 
-				List<Media> mediaplu = mediaDAO.getMediaByMoviesID(m.getMoviesID());
+				mediaplu = mediaDAO.getMediaByMoviesID(m.getMoviesID());
 
 				if (!mediaplu.isEmpty()) {
 					mediapath = request.getContextPath() + "/" + mediaplu.get(0).getMediaPath();
@@ -496,26 +495,30 @@ public class HomeController {
 	 */
 	@RequestMapping(value = "/article/movie/{id}", method = RequestMethod.GET)
 	@ResponseBody
+
 	public ModelAndView getMovieByID(@ModelAttribute("movieskey") MoviesBean moviesBean,
 			@ModelAttribute("personRolesInMovieskey") PersonRolesInMoviesBean personRolesInMoviesBean,
 			@ModelAttribute("genreskey") List<GenresBean> genresBeanplu, @ModelAttribute("picture") MediaBean mediaBean,
 			@ModelAttribute("pictures") List<MediaBean> mediaBeans, @PathVariable int id, HttpServletRequest request,
 			HttpSession session) {
-
+		List<PersonRolesInMovies> personRolesInMovies = null;
+		PersonRolesInMoviesDAO personRolesInMoviesDAO = null;
+		MoviesDAO moviesDAO = null;
+		Movies movies = null;
 		if (!mediaBeans.isEmpty()) {
 			mediaBeans.clear();
 		}
-		
-		if (session.getAttribute("addMovieToList")!=null) {
-			session.removeAttribute("addMovieToList");			
+
+		if (session.getAttribute("addMovieToList") != null) {
+			session.removeAttribute("addMovieToList");
 		}
 		logger.info("getMovieByID  -------> {}.", id);
 		ModelAndView modelAndView = new ModelAndView("templet");
 		modelAndView.addObject("pagebody", "pages/movie.jsp");
-		MoviesDAO moviesDAO = new MoviesDAO();
-		Movies movies = moviesDAO.getMoviesByID(id);
-		PersonRolesInMoviesDAO personRolesInMoviesDAO = new PersonRolesInMoviesDAO();
-		List<PersonRolesInMovies> personRolesInMovies = personRolesInMoviesDAO.getPersonRolesInMoviesByMovieID(id);
+		moviesDAO = new MoviesDAO();
+		movies = moviesDAO.getMoviesByID(id);
+		personRolesInMoviesDAO = new PersonRolesInMoviesDAO();
+		personRolesInMovies = personRolesInMoviesDAO.getPersonRolesInMoviesByMovieID(id);
 		checkLogin(session);
 		if (movies != null) {
 			modelAndView.addObject("apptitle", apptitleg + " | " + movies.getTitle());
@@ -579,15 +582,19 @@ public class HomeController {
 			@ModelAttribute("listCustomerFavMovies") List<CustomerFavMovieBeans> listCustomerFavMovies,
 			HttpServletRequest request) {
 
-		logger.info("------------------------->favoriteMovies listCustomerFavMovies.isEmpty() {}.", listCustomerFavMovies.isEmpty());
+		logger.info("------------------------->favoriteMovies listCustomerFavMovies.isEmpty() {}.",
+				listCustomerFavMovies.isEmpty());
+		CustomerFavMovieDAO customerFavMovieDAO = null;
+
 		if (!listCustomerFavMovies.isEmpty()) {
-			logger.info("------------------------->favoriteMovies listCustomerFavMovies.isEmpty() {}.", listCustomerFavMovies.isEmpty());
+			logger.info("------------------------->favoriteMovies listCustomerFavMovies.isEmpty() {}.",
+					listCustomerFavMovies.isEmpty());
 			listCustomerFavMovies.clear();
 		}
-		if(session.getAttribute("moviesDel2") == null && session.getAttribute("moviesDel2") != null) {
+		if (session.getAttribute("moviesDel2") == null && session.getAttribute("moviesDel2") != null) {
 			session.removeAttribute("moviesDel");
 		}
-		if(session.getAttribute("moviesDel2") != null) {
+		if (session.getAttribute("moviesDel2") != null) {
 			session.removeAttribute("moviesDel2");
 		}
 		// if (session.getAttribute("userlogin") == null) {
@@ -599,12 +606,13 @@ public class HomeController {
 		}
 		ModelAndView modelAndView = new ModelAndView("templet");
 		modelAndView.addObject("apptitle", apptitleg + " | My List");
-		CustomerFavMovieDAO customerFavMovieDAO = new CustomerFavMovieDAO();
+		customerFavMovieDAO = new CustomerFavMovieDAO();
 		try {
 			String ids = CipherHelper.decipher(secretKey, cusiden);
 			Integer idcus = Integer.valueOf(ids);
 			logger.info("favoriteMovies  -------> {}.", idcus);
-			List<CustomerFavMovie> customerFavMovies = customerFavMovieDAO.favouriteMovie(idcus.intValue(), "VIEW_CUSTOMER_FAVORITE_MOVIES");
+			List<CustomerFavMovie> customerFavMovies = customerFavMovieDAO.favouriteMovie(idcus.intValue(),
+					"VIEW_CUSTOMER_FAVORITE_MOVIES");
 			if (!customerFavMovies.isEmpty()) {
 				// List<CustomerFavMovieBeans> cfmBeans = new
 				// ArrayList<CustomerFavMovieBeans>();
@@ -646,21 +654,26 @@ public class HomeController {
 	public ModelAndView addMovieToList(@PathVariable int id, HttpSession session, HttpServletRequest request,
 			@ModelAttribute("listCustomerFavMovies") List<CustomerFavMovieBeans> listCustomerFavMovies, Model model) {
 		logger.info("-------------------------> cusiden {}.", session.getAttribute("cusiden"));
-		String cusiden = (String) session.getAttribute("cusiden");
 		
+		CustomerLoginDAO cusDao = null;
+		CustomerLogin cus = null;
+		cfmDAO = null;
+		List<CustomerFavMovie> cfm;
+		String cusiden = (String) session.getAttribute("cusiden");
+
 		if (!listCustomerFavMovies.isEmpty()) {
-			
+
 			listCustomerFavMovies.clear();
 		}
 		if (session.getAttribute("userlogin") == "logout" || session.getAttribute("userlogin") == null) {
 			return new ModelAndView("redirect:/login");
-			
+
 		}
 
-		
 		ModelAndView modelAndView = new ModelAndView("templet");
-		logger.info("-------------------------> session.getAttribute(\"addMovieToList\") {}.", session.getAttribute("addMovieToList"));
-		if (session.getAttribute("addMovieToList")!=null) {
+		logger.info("-------------------------> session.getAttribute(\"addMovieToList\") {}.",
+				session.getAttribute("addMovieToList"));
+		if (session.getAttribute("addMovieToList") != null) {
 			session.removeAttribute("addMovieToList");
 			return new ModelAndView("redirect:/article/customer/" + cusiden);
 		}
@@ -670,7 +683,7 @@ public class HomeController {
 		Movies movies = moviesDAO.getMoviesByID(id);
 
 		if (id == movies.getMoviesID()) {
-			
+
 			String ids;
 			logger.info("favoriteMovies  -------> {}.", cusiden);
 			try {
@@ -678,12 +691,12 @@ public class HomeController {
 				ids = CipherHelper.decipher(secretKey, cusiden);
 				Integer idcus = Integer.valueOf(ids);
 				logger.info("favoriteMovies  -------> {}.", idcus);
-				CustomerLoginDAO cusDao = new CustomerLoginDAO();
-				CustomerLogin cus = cusDao.getCustomerByid(idcus.intValue());
+				 cusDao = new CustomerLoginDAO();
+				 cus = cusDao.getCustomerByid(idcus.intValue());
 				if (cus.getCustomerID() == idcus.intValue()) {
-					CustomerFavMovieDAO cfmDAO = new CustomerFavMovieDAO();
-
-					for (CustomerFavMovie c : cfmDAO.favouriteMovie(cus.getCustomerID(), "VIEW_CUSTOMER_FAVORITE_MOVIES")) {
+					cfmDAO = new CustomerFavMovieDAO();
+					cfm =  cfmDAO.favouriteMovie(cus.getCustomerID(),  "VIEW_CUSTOMER_FAVORITE_MOVIES");
+					for (CustomerFavMovie c : cfm) {
 						logger.info("------------------------->  id {}  c.getMoviesID() {}.", id, c.getMoviesID());
 						logger.info("-------------------------> idcus.intValue() {}  c.getCustomerID() {}.",
 								idcus.intValue(), c.getCustomerID());
@@ -696,6 +709,7 @@ public class HomeController {
 							logger.info("-------------------------> testForMvieCost {}.", testForMvieCost);
 						}
 					}
+					
 					if (testForMvieCost == false) {
 						String sql = "INSERT INTO customer_favorite_movies (moviesid, customerid) VALUES(" + id + ","
 								+ cus.getCustomerID() + ")";
@@ -714,15 +728,17 @@ public class HomeController {
 						modelAndView.addObject("errorMessage",
 								"The movie  <b>" + movies.getTitle() + "</b> is already on your list");
 					}
-					listCustomerFavMovies = new ArrayList<CustomerFavMovieBeans>();
-					for (CustomerFavMovie cfm : cfmDAO.favouriteMovie(cus.getCustomerID(), "VIEW_CUSTOMER_FAVORITE_MOVIES")) {
-						listCustomerFavMovies.add(new CustomerFavMovieBeans(cfm.getMoviesID(), cfm.getRuntime(),
-								cfm.getTitle(), cfm.getPrice(), cfm.getScore()));
+					//listCustomerFavMovies = new ArrayList<CustomerFavMovieBeans>();
+					cfm.clear();
+					cfm =  cfmDAO.favouriteMovie(cus.getCustomerID(),  "VIEW_CUSTOMER_FAVORITE_MOVIES");
+					for (CustomerFavMovie c : cfm) {
+						listCustomerFavMovies.add(new CustomerFavMovieBeans(c.getMoviesID(), c.getRuntime(),
+								c.getTitle(), c.getPrice(), c.getScore()));
 
 					}
 					modelAndView.addObject("listCustomerFavMovies", listCustomerFavMovies);
 				} else {
-					
+
 					modelAndView.addObject("errorMessage", "Something is wrong. Try logging on to the web again.");
 				}
 			} catch (Exception e) {
@@ -737,41 +753,45 @@ public class HomeController {
 		return modelAndView;
 
 	}
-	
-	
+
 	// favorite movies customer
 	@RequestMapping(value = "/remove/list/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public RedirectView removeMovieToList(@PathVariable int id, HttpSession session, HttpServletRequest request,
-			@ModelAttribute("listCustomerFavMovies") List<CustomerFavMovieBeans> listCustomerFavMovies, Model model, RedirectAttributes attributes) {
+			@ModelAttribute("listCustomerFavMovies") List<CustomerFavMovieBeans> listCustomerFavMovies, Model model,
+			RedirectAttributes attributes) {
 		String cusiden = (String) session.getAttribute("cusiden");
 		logger.info("-------------------------> removeMovieToList removeMovieToList {}", cusiden);
+		CustomerFavMovieDAO cfmDAO = null;
+		MoviesDAO moviesDAO = null;
+		Movies movies = null;
 		String ids;
 		try {
 			ids = CipherHelper.decipher(secretKey, cusiden);
 			int idcus = Integer.valueOf(ids).intValue();
-			CustomerFavMovieDAO cfmDAO = new CustomerFavMovieDAO();
-			String sql = "DELETE FROM customer_favorite_movies WHERE customerid="+ idcus +" and moviesid="+ id;
+			cfmDAO = new CustomerFavMovieDAO();
+			String sql = "DELETE FROM customer_favorite_movies WHERE customerid=" + idcus + " and moviesid=" + id;
 			logger.info("-------------------------> removeMovieToList removeMovieToList {}", sql);
-			if(cfmDAO.deleteRecordFromTable(sql)) {
-				MoviesDAO moviesDAO = new MoviesDAO();
-				Movies movies = moviesDAO.getMoviesByID(id);
-				//attributes.addAttribute("moviesDel", "The movie <b>"+ movies.getTitle() +"</b> is successfully deleted from your list");
-				session.setAttribute("moviesDel", "The movie <b>"+ movies.getTitle() +"</b> is successfully deleted from your list");
+			if (cfmDAO.deleteRecordFromTable(sql)) {
+				moviesDAO = new MoviesDAO();
+				movies = moviesDAO.getMoviesByID(id);
+				// attributes.addAttribute("moviesDel", "The movie <b>"+ movies.getTitle()
+				// +"</b> is successfully deleted from your list");
+				session.setAttribute("moviesDel",
+						"The movie <b>" + movies.getTitle() + "</b> is successfully deleted from your list");
 				session.setAttribute("moviesDel2", "moviesDel2");
 				logger.info("------------------------->  id {}  cfmDAO {}.", id, idcus);
-			}else {
-				attributes.addAttribute("errorMessage", "The movie has not been deleted from your list with id " + id + ".");
+			} else {
+				attributes.addAttribute("errorMessage",
+						"The movie has not been deleted from your list with id " + id + ".");
 			}
 		} catch (Exception e) {
-		
+
 			e.printStackTrace();
 			attributes.addAttribute("errorMessage", "Ups something is not good");
 		}
-			
+
 		return new RedirectView(request.getContextPath() + "/article/customer/" + cusiden);
-		
+
 	}
 }
-
-

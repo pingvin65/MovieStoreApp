@@ -42,6 +42,11 @@ public class PurchaseMovieController {
 	private static final String secretKey = InfoPage.getSecretkey();
 	private int custID;
 
+	private CustomerFavMovieDAO custPreorderMovieDAO = null;
+	private CustomerFavMovieDAO cTempDAO = null;
+	private CustomerFavMovieDAO customerFavMovieDAO = null;
+	private CustomerHasOrdersDAO customerHasOrdersDAO= null;
+	private OrdersDAO ordersDAO =null;
 	public int getCustID() {
 		return custID;
 	}
@@ -68,7 +73,7 @@ public class PurchaseMovieController {
 		listCustomerPreMovies.clear();
 		CustomerLoginDAO customerDAO = new CustomerLoginDAO();
 		MoviesDAO moviesDAO = new MoviesDAO();
-		CustomerFavMovieDAO custPreorderMovieDAO;
+		// CustomerFavMovieDAO custPreorderMovieDAO;
 		String requestPath = request.getServletPath();
 		logger.info("----------- PurchaseMovieController  -------> {}.", requestPath);
 		checkLogin(session);
@@ -91,7 +96,7 @@ public class PurchaseMovieController {
 				CustomerLogin customer = customerDAO.getCustomerByid(getCustID());
 				logger.info("---------------- PurchaseMovieController customer -------> {}.", customer.getCustomerID());
 				if (customer.getCustomerID() == getCustID()) {
-					CustomerFavMovieDAO cTempDAO = new CustomerFavMovieDAO();
+					cTempDAO = new CustomerFavMovieDAO();
 					String sql = "INSERT INTO CUSTOMER_PREORDER_MOVIES (moviesid, customerid) VALUES(" + id + ","
 							+ customer.getCustomerID() + ")";
 					if (cTempDAO.inserData(sql)) {
@@ -136,18 +141,18 @@ public class PurchaseMovieController {
 			@ModelAttribute("listCustomerPreMovies") List<CustomerFavMovieBeans> listCustomerPreMovies, ModelMap model)
 			throws SQLSyntaxErrorException {
 		checkLogin(session);
-		
+
 		logger.info("---------------- PurchaseMovieController numb customer -------> {}.",
 				session.getAttribute("cusiden"));
-		OrdersDAO ordersDAO = new OrdersDAO();
-		CustomerFavMovieDAO customerFavMovieDAO = null;
+		ordersDAO = new OrdersDAO();
+		
 		// decCusiden((String)session.getAttribute("cusiden"));
 		int cusid = decCusiden((String) session.getAttribute("cusiden"));
 		// Orders orders = new Orders();
 
 		logger.info("---------------- PurchaseMovieController ordersNweID -------> {}.", "dfdfdffdf");
 		if (ordersDAO.insertOrder(cusid)) {
-			CustomerHasOrdersDAO customerHasOrdersDAO = new CustomerHasOrdersDAO();
+			customerHasOrdersDAO = new CustomerHasOrdersDAO();
 			int lastOrder = ordersDAO.getLastID(cusid);
 			customerHasOrdersDAO.insertOrder(lastOrder, listCustomerPreMovies);
 			logger.info("---------------- PurchaseMovieController ordersDAO -------> {}.",
@@ -157,7 +162,7 @@ public class PurchaseMovieController {
 					.deleteRecordFromTable("DELETE FROM CUSTOMER_PREORDER_MOVIES WHERE customerid =" + cusid);
 			listCustomerPreMovies.clear();
 			session.setAttribute("addedMovie", "Thank you very much for your order with number " + lastOrder);
-			
+
 		}
 
 		return new ModelAndView("redirect:/purchase/movie");
@@ -172,7 +177,7 @@ public class PurchaseMovieController {
 		checkLogin(session);
 
 		listCustomerPreMovies.clear();
-		CustomerFavMovieDAO custPreorderMovieDAO = new CustomerFavMovieDAO();
+		custPreorderMovieDAO = new CustomerFavMovieDAO();
 		for (CustomerFavMovie cus : custPreorderMovieDAO.favouriteMovie(getCustID(), "view_customer_preorder_movies")) {
 			// CustomerFavMovieBeans(int moviesID, int runtime, String title, float price,
 			// float score)
@@ -196,8 +201,8 @@ public class PurchaseMovieController {
 			@ModelAttribute("listCustomerPreMovies") List<CustomerFavMovieBeans> listCustomerPreMovies,
 			ModelMap model) {
 		checkLogin(session);
-		CustomerFavMovieDAO cTempDAO = new CustomerFavMovieDAO();
-		CustomerFavMovieDAO custPreorderMovieDAO = new CustomerFavMovieDAO();
+		cTempDAO = new CustomerFavMovieDAO();
+		custPreorderMovieDAO = new CustomerFavMovieDAO();
 		String sql = "DELETE FROM CUSTOMER_PREORDER_MOVIES WHERE consumerfmid=" + id;
 		if (cTempDAO.inserData(sql)) {
 			logger.info("---------------- PurchaseMovieController remove in list -------> {}.", id);

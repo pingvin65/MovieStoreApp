@@ -17,12 +17,14 @@ import com.moviestore.utility.JDBCStatement;
  *
  */
 public class PersonRolesInMoviesDAO implements PersonRolesInMoviesDAOI {
+
 	JDBCStatement jDBCStatement;
-	// OracleSQL moviesByID;
 	ResultSet rs = null;
 	Statement statement = null;
 
 	/**
+	 * 
+	 * @param int movieID
 	 * @return List Perso nRoles In Movies by movieID
 	 */
 	@Override
@@ -31,7 +33,7 @@ public class PersonRolesInMoviesDAO implements PersonRolesInMoviesDAOI {
 		List<PersonRolesInMovies> personRolesInMovies = new ArrayList<PersonRolesInMovies>();
 
 		try {
-			statement = null;
+
 			statement = jDBCStatement.getConnection().createStatement();
 			rs = statement.executeQuery(
 					"SELECT person_fname, person_lname, orderinmovies, roulesid, movieid FROM VIEW_PERSON_ROLES_IN_MOVIES WHERE movieid="
@@ -42,9 +44,22 @@ public class PersonRolesInMoviesDAO implements PersonRolesInMoviesDAOI {
 						.add(new PersonRolesInMovies(rs.getNString("person_fname"), rs.getNString("person_lname"),
 								rs.getInt("orderinmovies"), rs.getInt("roulesid"), rs.getInt("movieid")));
 			}
-			rs.close();
 		} catch (SQLException | ClassNotFoundException | IOException e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				jDBCStatement.jDBCStatementClose();
+
+				if (rs != null && !rs.isClosed()) {
+					rs.close();
+				}
+				if (statement != null && statement.isClosed()) {
+					statement.close();
+				}
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		return personRolesInMovies;
 	}

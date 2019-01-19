@@ -22,6 +22,7 @@ public class GenresDAO implements GenresDAOI {
 	private ResultSet rs = null;
 
 	/**
+	 * @param int moviesID
 	 * @return List genres by movieID
 	 */
 	@Override
@@ -40,8 +41,6 @@ public class GenresDAO implements GenresDAOI {
 			e1.printStackTrace();
 		}
 
-		// rs = new OracleSQL().getData("SELECT genres FROM VIEW_MOVIES_HAS_GENRES WHERE
-		// mpviesid=" + moviesID);
 
 		try {
 			while (rs.next()) { //
@@ -50,21 +49,21 @@ public class GenresDAO implements GenresDAOI {
 
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			try {
-			if (!statement.isClosed()) {
-				statement.close();
-			}
-			if (!rs.isClosed()) {
-				rs.close();
-			}
 
-			if (!jDBCStatement.getConnection().isClosed()) {
-				jDBCStatement.getConnection().close();
-			}
-			} catch (SQLException | ClassNotFoundException | IOException e) {
+				if (rs !=null && !rs.isClosed()) {
+					rs.close();
+				}
+				if (statement != null && !statement.isClosed()) {
+					statement.close();
+				}
+
+				jDBCStatement.jDBCStatementClose();
+
+			} catch (SQLException e) {
 				e.printStackTrace();
-			}finally {
+			} finally {
 			}
 		}
 
